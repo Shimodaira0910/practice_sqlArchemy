@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_DATABASE: testDB
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - my-db:/var/lib/mysql
+
+  python:
+    build:
+      context: .
+      dockerfile: ./app/dockerfile
+    container_name: python
+    depends_on:
+      - mongodb
+    environment:
+      MONGODB_USERNAME: root
+      MONGODB_PASSWORD: example
+      MONGODB_HOSTNAME: mongodb
+    volumes:
+      - ./app:/app
+    ports:
+      - 8000:8000
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+  client:
+    build:
+      context: .
+      dockerfile: ./client/dockerfile
+    container_name: client
+    ports:
+      - "8080:80"
+
+  volumes:
+    my-db:
